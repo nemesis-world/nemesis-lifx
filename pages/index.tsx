@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import axios from "axios";
+import { signIn, signOut, useSession } from "next-auth/client";
 import {
   Spinner,
   Page,
@@ -8,12 +9,12 @@ import {
   Stack,
   ButtonGroup,
   Button,
-  Heading,
   TextContainer,
   Badge,
 } from "@shopify/polaris";
 
 export default function Home() {
+  const [session, isLoading] = useSession();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,10 +32,9 @@ export default function Home() {
         setLoading(false);
       });
   }, []);
-  if (loading)
+  if (loading || isLoading)
     return <Spinner accessibilityLabel="Spinner example" size="large" />;
   if (error) return "Error!";
-  if (data) console.log(data);
 
   const lights = data.map((light) => {
     return (
@@ -66,6 +66,10 @@ export default function Home() {
     );
   });
 
+  if (session) {
+    console.log(session);
+  }
+
   return (
     <div>
       <Head>
@@ -73,6 +77,18 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Page>{lights}</Page>
+      {!session && (
+        <>
+          Not signed in <br />
+          <button onClick={() => signIn()}>Sign in</button>
+        </>
+      )}
+      {session && (
+        <>
+          Signed in as {session.user.email} <br />
+          <button onClick={() => signOut()}>Sign out</button>
+        </>
+      )}
     </div>
   );
 }
